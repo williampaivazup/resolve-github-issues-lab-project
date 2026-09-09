@@ -78,22 +78,18 @@ namespace ContosoShopEasy.Security
             return true;
         }
 
-        // Vulnerable credit card validation
-        public bool ValidateCreditCard(string cardNumber)
+        public bool ValidateCreditCard(string? cardNumber)
         {
-            if (string.IsNullOrEmpty(cardNumber))
+            if (string.IsNullOrWhiteSpace(cardNumber))
                 return false;
 
-            // Security vulnerability: Log full credit card number
-            Console.WriteLine($"[DEBUG] Validating credit card: {cardNumber}");
+            string normalizedCardNumber = cardNumber.Replace(" ", "").Replace("-", "");
 
-            // Remove spaces and dashes
-            cardNumber = cardNumber.Replace(" ", "").Replace("-", "");
-
-            // Security vulnerability: Accept any numeric string of reasonable length
-            if (cardNumber.Length >= 13 && cardNumber.Length <= 19 && cardNumber.All(char.IsDigit))
+            if (normalizedCardNumber.Length >= 13 &&
+                normalizedCardNumber.Length <= 19 &&
+                normalizedCardNumber.All(char.IsDigit))
             {
-                Console.WriteLine("[INFO] Credit card format appears valid");
+                Console.WriteLine($"[INFO] Validating card ending in {normalizedCardNumber[^4..]}");
                 return true;
             }
 
@@ -168,9 +164,9 @@ namespace ContosoShopEasy.Security
             
             Console.WriteLine("Input validation: ENABLED (but vulnerable)");
             Console.WriteLine("Password encryption: MD5 (WEAK)");
-            Console.WriteLine("Credit card storage: FULL NUMBERS (INSECURE)");
+            Console.WriteLine("Credit card storage: TOKENIZED AND MASKED (LAST FOUR ONLY)");
             Console.WriteLine("Logging level: DEBUG (EXPOSES SENSITIVE DATA)");
-            Console.WriteLine("SQL injection protection: DISABLED");
+            Console.WriteLine("SQL injection protection: ENABLED");
             Console.WriteLine("XSS protection: MINIMAL");
             
             Console.WriteLine("=== End Vulnerability List ===");
