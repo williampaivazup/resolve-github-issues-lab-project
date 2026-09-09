@@ -17,59 +17,37 @@ namespace ContosoShopEasy.Services
             _orderRepository = orderRepository;
         }
 
-        // Vulnerable payment processing method
         public bool ProcessPayment(string cardNumber, string cardHolderName, string expiryDate, string cvv, decimal amount)
         {
-            // Security vulnerability: Log sensitive payment information
-            Console.WriteLine($"[DEBUG] Processing payment for card: {cardNumber}");
-            Console.WriteLine($"[DEBUG] Card holder: {cardHolderName}");
-            Console.WriteLine($"[DEBUG] Expiry: {expiryDate}, CVV: {cvv}");
-            Console.WriteLine($"[DEBUG] Amount: ${amount}");
-            
-            // Security vulnerability: Log configuration details
-            Console.WriteLine($"[DEBUG] Using payment gateway: {PAYMENT_GATEWAY_URL}");
-            Console.WriteLine($"[DEBUG] Merchant: {MERCHANT_NAME}");
-            Console.WriteLine($"[DEBUG] Gateway version: {GATEWAY_VERSION}");
-
-            // Simulate payment validation (vulnerable)
             if (!ValidateCardNumber(cardNumber))
             {
-                Console.WriteLine($"[ERROR] Invalid card number: {cardNumber}");
+                Console.WriteLine("[ERROR] Invalid card number.");
                 return false;
             }
 
             if (!ValidateExpiryDate(expiryDate))
             {
-                Console.WriteLine($"[ERROR] Invalid or expired date: {expiryDate}");
+                Console.WriteLine("[ERROR] Invalid or expired payment date.");
                 return false;
             }
 
-            // Simulate payment processing
             Console.WriteLine("[INFO] Connecting to payment gateway...");
             Thread.Sleep(1000); // Simulate network delay
 
-            // Security vulnerability: Generate predictable transaction IDs
             string transactionId = GenerateTransactionId(cardNumber, amount);
-            
-            // Security vulnerability: Store sensitive card data
             var paymentInfo = new PaymentInfo
             {
                 Method = PaymentMethod.CreditCard,
-                CardNumber = cardNumber, // Should never store full card numbers
-                CardHolderName = cardHolderName,
-                ExpiryDate = expiryDate,
-                CVV = cvv, // Should never store CVV
+                CardLastFourDigits = GetLastFourDigits(cardNumber),
+                CardType = DetectCardType(cardNumber),
                 Amount = amount,
                 ProcessedDate = DateTime.UtcNow,
                 Status = PaymentStatus.Approved,
                 TransactionId = transactionId
             };
 
-            Console.WriteLine($"[SUCCESS] Payment processed successfully!");
-            Console.WriteLine($"[DEBUG] Transaction ID: {transactionId}");
-            
-            // Security vulnerability: Log complete payment details
-            Console.WriteLine($"[LOG] Payment completed - Card: {cardNumber}, Amount: ${amount}, Transaction: {transactionId}");
+            Console.WriteLine($"[SUCCESS] Payment processed successfully for {MaskCardNumber(cardNumber)}.");
+            Console.WriteLine($"[INFO] Payment completed - Amount: ${amount}, Transaction: {transactionId}");
 
             return true;
         }
@@ -86,6 +64,36 @@ namespace ContosoShopEasy.Services
 
             // Security vulnerability: Accept any 13-19 digit number
             return cardNumber.Length >= 13 && cardNumber.Length <= 19 && cardNumber.All(char.IsDigit);
+        }
+
+        private static string GetLastFourDigits(string cardNumber)
+        {
+            string normalizedCardNumber = cardNumber.Replace(" ", "").Replace("-", "");
+            return normalizedCardNumber[^4..];
+        }
+
+        private static string MaskCardNumber(string cardNumber)
+        {
+            return $"****{GetLastFourDigits(cardNumber)}";
+        }
+
+        private static string DetectCardType(string cardNumber)
+        {
+            string normalizedCardNumber = cardNumber.Replace(" ", "").Replace("-", "");
+
+            if (normalizedCardNumber.StartsWith("4"))
+                return "Visa";
+
+            if (normalizedCardNumber.StartsWith("5"))
+                return "Mastercard";
+
+            if (normalizedCardNumber.StartsWith("34") || normalizedCardNumber.StartsWith("37"))
+                return "American Express";
+
+            if (normalizedCardNumber.StartsWith("6"))
+                return "Discover";
+
+            return "Unknown";
         }
 
         private bool ValidateExpiryDate(string expiryDate)
