@@ -12,6 +12,8 @@ This GitHub Actions workflow creates training issues for the ContosoShopEasy sec
 
 ### Running the Workflow
 
+Before running it, enable **Issues** in **Settings > General > Features > Issues**. This workflow uses the GitHub Issues API, so it cannot create issues while that feature is disabled.
+
 1. Go to the **Actions** tab in your GitHub repository
 2. Find the workflow named **"Create ContosoShopEasy Training Issues"**
 3. Click **"Run workflow"**
